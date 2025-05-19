@@ -11,41 +11,33 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 //Função para inserir um novo FilmeGenero
-const insertFilmeGenero = async function(FilmeGenero){
+const insertFilmeGenero = async function (dados) {
   try {
+    let sql = `
+      INSERT INTO tbl_filme_genero (
+        tbl_filme_id,
+        tbl_genero_id
+      ) VALUES (
+        ${dados.id_filme},
+        ${dados.id_genero}
+      )
+    `;
 
-      let sql = `insert into tbl_filme_genero  ( 
-                                          id_filme,
-                                          id_genero
-                                        ) 
-                                          values 
-                                        (
-                                          ${FilmeGenero.id_filme},
-                                          ${FilmeGenero.id_genero}
-                                        )`
-      console.log(sql)
-
-      //Executa o scriptSQL no banco de dados e aguarda o retorno do BD para 
-      //saber se deu certo                                  
-      let result = await prisma.$executeRawUnsafe(sql)
-
-      if(result)
-          return true
-      else
-          return false
+    let result = await prisma.$executeRawUnsafe(sql);
+    return result ? true : false;
   } catch (error) {
-      
-      return false
+    console.error('Erro ao inserir relação filme-genero:', error);
+    return false;
   }
-}
+};
 
 //Função para atualizar um FilmeGenero existente
-const updateFilmeGenero = async function(FilmeGenero){
+const updateFilmeGenero = async function(filmeGenero){
   try {
-      let sql = `update tbl_filme_genero set        id_filme       = ${FilmeGenero.id_filme},
-                                                    id_genero      = ${FilmeGenero.id_genero}
+      let sql = `update tbl_filme_genero set        id_filme       = ${filmeGenero.id_filme},
+                                                    id_genero      = ${filmeGenero.id_genero}
                                         
-                            where id = ${FilmeGenero.id}                
+                            where id = ${ilmeGenero.id}                
                             `
       let resultFilmeGenero = await prisma.$executeRawUnsafe(sql)
 
@@ -131,27 +123,24 @@ const selectFilmeByIdGenero = async function(idGenero){
   }
 }
 
+
 //Função para retornar os generos pelo Filme
-const selectGeneroByIdFilme = async function(idFilme){
- try {
-      let sql = `select tbl_genero.* from tbl_filme 
-                                            inner join tbl_filme_genero
-                                              on tbl_filme.id = tbl_filme_genero.id_filme
-                                            inner join tbl_genero
-                                              on tbl_genero.id = tbl_filme_genero.id_genero
-                  where tbl_filme_genero.id_filme = ${idFilme}`
-                  
-      let result = await prisma.$queryRawUnsafe(sql)
-
-    if (result)
+const selectGenerosByFilmeId = async function (idFilme) {
+    try {
+        let sql = `
+            SELECT g.id, g.nome
+            FROM tbl_genero AS g
+            INNER JOIN tbl_filme_genero AS fg
+                ON g.id = fg.tbl_genero_id
+            WHERE fg.tbl_filme_id = ${idFilme}
+        `
+        let result = await prisma.$queryRawUnsafe(sql)
         return result
-    else 
+    } catch (error) {
+        console.error('Erro ao buscar gêneros do filme:', error)
         return false
-  } catch (error) {
-      return false
-  }
+    }
 }
-
 
 module.exports = {
     insertFilmeGenero,
@@ -160,5 +149,5 @@ module.exports = {
     selectAllFilmeGenero,
     selectByIdFilmeGenero,
     selectFilmeByIdGenero,
-    selectGeneroByIdFilme
+    selectGenerosByFilmeId
 } 

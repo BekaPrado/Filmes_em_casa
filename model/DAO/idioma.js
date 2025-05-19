@@ -123,6 +123,7 @@ const selectByNomeIdioma = async function (nome) {
 }
 
 //------------------------------------------------------
+//tirar
 const searchIdiomaByNome = async function (nome) {
     try {
         if (!nome || nome.trim() === '') {

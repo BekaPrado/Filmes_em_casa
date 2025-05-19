@@ -22,72 +22,75 @@
  *                      npx prisma migrate dev                                                        *
  *********************************************************************************************************/
 
-const express = require('express')
-const cors = require('cors')
-const bodyParser = require('body-parser')
+const express       = require('express')
+const cors          = require('cors')
+const bodyParser    = require('body-parser')
 
-//manipular o body da requisição para chega apenas JSON
-const bodyParserJSON=bodyParser.json()
-//cria o objeto app com referencia do express
-const app=express ()
-//configura o acesso cors
-app.use((request, response, next)=>{
-    response.header('Acess-Control-Allow-Origin','*')
-    response.header('Acess-Control-Allow-Methods','GET', 'POST', 'PUT', 'DELETE', 'OPTIONS')
-    app.use(cors())
+//Manipular o body da requisição para chegar apenas JSON
+const bodyParserJSON = bodyParser.json()
+// Cria o objeto app com referência ao express
+const app = express()
+
+// Middleware para permitir requisições CORS
+app.use(cors())
+
+// Corrige o cabeçalho CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*')
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    res.header('Access-Control-Allow-Headers', 'Content-Type')
     next()
 })
-/******************************* importação do controller  **************************************************/
+
+// Middleware para interpretar JSON no body
+app.use(express.json())
+
+/******************************* IMPORTAÇÃO DOS CONTROLLERS **************************************************/
 const controllerFilme = require('./controller/controllerFilme/controllerFilme')
 const controllerGenero = require('./controller/controllerGenero/controllerGenero.js')
 const controllerIdioma = require('./controller/controllerIdioma/controllerIdioma.js')
 const controllerNacionalidade = require('./controller/controllerNacionalidade/controllerNacionalidade.js')
-const controllerPais = require ('./controller/controllerPais/controllerPais.js')
-const controllerSexo = require ('./controller/controllerSexo/controllerSexo.js')
-const controllerUsuario = require ('./controller/controllerUsuario/controllerUsuario.js')
-
+const controllerPais = require('./controller/controllerPais/controllerPais.js')
+const controllerSexo = require('./controller/controllerSexo/controllerSexo.js')
+const controllerUsuario = require('./controller/controllerUsuario/controllerUsuario.js')
+const controllerProdutora = require('./controller/controllerProdutora/controllerProdutora.js')
+const controllerFilmeGenero = require('./controller/controllerFilme/controllerFilmeGenero.js')
 
 /**********************************************************************************************************************************/
-/*********************************************************FILME********************************************************************/
+/********************************************************* FILME ******************************************************************/
 /**********************************************************************************************************************************/
 
-//ROTAS
-
-// inserir um novo filme
-app.post('/v1/controle-filmes/filme', cors(), bodyParserJSON, async (request, response) => {
+// Inserir um novo filme
+app.post('/v1/controle-filmes/filme', async (request, response) => {
     const contentType = request.headers['content-type']
     const dadosBody = request.body
 
     const resultFilme = await controllerFilme.inserirFilme(dadosBody, contentType)
     response.status(resultFilme.status_code).json(resultFilme)
 })
-/*****************************************************************************************************************/
 
-// listar todos os filmes
-// Corrigir a rota de listagem de filmes (mudar para GET)
-app.get('/v1/controle-filmes/filme', cors(), async (request, response) => {
+// Listar todos os filmes
+app.get('/v1/controle-filmes/filme', async (request, response) => {
     const resultFilme = await controllerFilme.listarFilme()
     response.status(resultFilme.status_code).json(resultFilme)
+    
 })
-/*****************************************************************************************************************/
 
-// buscar filme por ID
+// Buscar filme por ID
 app.get('/v1/controle-filmes/filme/:id', async (request, response) => {
     const idFilme = request.params.id
     const resultFilme = await controllerFilme.buscarFilme(idFilme)
     response.status(resultFilme.status_code).json(resultFilme)
 })
-/*****************************************************************************************************************/
 
-// excluir filme por ID
+// Excluir filme por ID
 app.delete('/v1/controle-filmes/filme/:id', async (request, response) => {
     const idFilme = request.params.id
     const resultFilme = await controllerFilme.excluirFilme(idFilme)
     response.status(resultFilme.status_code).json(resultFilme)
 })
-/*****************************************************************************************************************/
 
-// atualizar filme por ID
+// Atualizar filme por ID
 app.put('/v1/controle-filmes/filme/:id', async (request, response) => {
     const contentType = request.headers['content-type']
     const idFilme = request.params.id
@@ -96,6 +99,8 @@ app.put('/v1/controle-filmes/filme/:id', async (request, response) => {
     const resultFilme = await controllerFilme.atualizarFilme(idFilme, dadosBody, contentType)
     response.status(resultFilme.status_code).json(resultFilme)
 })
+
+
 
 
 /**********************************************************************************************************************************/
@@ -118,7 +123,7 @@ app.post('/v1/controle-filmes/genero', cors(), bodyParserJSON, async (request, r
 
 // LISTAR TODOS OS GÊNEROS
 app.get('/v1/controle-filmes/genero', cors(), async (request, response) => {
-    const result = await controllerGenero.listarGeneros()
+    const result = await controllerGenero.listarGenero()
     response.status(result.status_code).json(result)
 })
 
@@ -128,7 +133,7 @@ app.get('/v1/controle-filmes/genero', cors(), async (request, response) => {
 app.get('/v1/controle-filmes/genero/:id', cors(), async (request, response) => {
     const idGenero = request.params.id
 
-    const result = await controllerGenero.buscarGeneroPorId(idGenero)
+    const result = await controllerGenero.buscarGenero(idGenero)
     response.status(result.status_code).json(result)
 })
 
@@ -180,7 +185,7 @@ app.get('/v1/controle-filmes/idioma', cors(), async (request, response) => {
 app.get('/v1/controle-filmes/idioma/:id', cors(), async (request, response) => {
     const idIdioma = request.params.id
 
-    const result = await controllerIdioma.buscarIdiomaPorId(idIdioma)
+    const result = await controllerIdioma.buscarIdioma(idIdioma)
 
     response.status(result.status_code).json(result)
 })
@@ -234,7 +239,7 @@ app.post('/v1/controle-filmes/nacionalidade', cors(), bodyParserJSON, async (req
 
 // listar todas as nacionalidades
 app.get('/v1/controle-filmes/nacionalidade', cors(), async (request, response) => {
-    const result = await controllerNacionalidade.listarNacionalidades()
+    const result = await controllerNacionalidade.listarNacionalidade()
     response.status(result.status_code).json(result)
 })
 /*****************************************************************************************************************/
@@ -242,7 +247,7 @@ app.get('/v1/controle-filmes/nacionalidade', cors(), async (request, response) =
 // buscar nacionalidade por ID
 app.get('/v1/controle-filmes/nacionalidade/:id', cors(), async (request, response) => {
     const id = request.params.id
-    const result = await controllerNacionalidade.buscarNacionalidadePorId(id)
+    const result = await controllerNacionalidade.buscarNacionalidade(id)
     response.status(result.status_code).json(result)
 })
 /*****************************************************************************************************************/
@@ -381,6 +386,36 @@ app.delete('/v1/controle-filmes/usuario/:id', cors(), async (req, res) => {
     res.status(result.status_code).json(result)
 })
 
+
+
+/**********************************************************************************************************************************/
+/*******************************************************PRODUTORA******************************************************************/
+/**********************************************************************************************************************************/
+
+app.post('/v1/controle-filmes/produtora', cors(), bodyParserJSON, async (req, res) => {
+    const result = await controllerProdutora.inserirProdutora(req.body, req.headers['content-type'])
+    res.status(result.status_code).json(result)
+})
+
+app.get('/v1/controle-filmes/produtora', cors(), async (req, res) => {
+    const result = await controllerProdutora.listarProdutoras()
+    res.status(result.status_code).json(result)
+})
+
+app.get('/v1/controle-filmes/produtora/:id', cors(), async (req, res) => {
+    const result = await controllerProdutora.buscarProdutoraPorId(req.params.id)
+    res.status(result.status_code).json(result)
+})
+
+app.put('/v1/controle-filmes/produtora/:id', cors(), bodyParserJSON, async (req, res) => {
+    const result = await controllerProdutora.atualizarProdutora(req.params.id, req.body, req.headers['content-type'])
+    res.status(result.status_code).json(result)
+})
+
+app.delete('/v1/controle-filmes/produtora/:id', cors(), async (req, res) => {
+    const result = await controllerProdutora.excluirProdutora(req.params.id)
+    res.status(result.status_code).json(result)
+})
 
 /*-----------------------------------------------------------------------------------------*/
 //servidor
